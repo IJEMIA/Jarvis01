@@ -1,4 +1,4 @@
-    import streamlit as st
+import streamlit as st
 from openai import OpenAI
 import time
 import os
@@ -424,6 +424,7 @@ with st.sidebar:
     
     folder_id = st.text_input(
         "ID de Carpeta (opcional)", 
+        value="1i7N_vb_EC8ds-GMPhBhvX6-llbTdQUgV",
         placeholder="Dejar vacío para raíz",
         help="Puedes obtener el ID de una carpeta desde la URL de Google Drive"
     )
@@ -609,3 +610,8 @@ if not st.session_state.drive_service:
         client_x509_cert_url = "..."
         ```
         
+        ### ⚠️ Importante
+        - Nunca compartas tu archivo JSON de credenciales
+        - La Service Account solo puede acceder a carpetas compartidas con ella
+        - Usa el email de la Service Account para compartir carpetas en Drive
+        """)
