@@ -609,9 +609,4 @@ if not st.session_state.drive_service:
         auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
         client_x509_cert_url = "..."
         ```
-        
-        ### ⚠️ Importante
-        - Nunca compartas tu archivo JSON de credenciales
-        - La Service Account solo puede acceder a carpetas compartidas con ella
-        - Usa el email de la Service Account para compartir carpetas en Drive
-        """)
+       
