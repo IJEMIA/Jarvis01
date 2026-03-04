@@ -3,8 +3,9 @@ from openai import OpenAI
 import time
 import os
 import glob
+import streamlit.components.v1 as components
 
-# IMPORTACIONES PARA LECTURA DE PDF Y RAG
+# IMPORTACIONES ACTUALIZADAS PARA LANGCHAIN
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -19,7 +20,7 @@ st.set_page_config(
     menu_items={'Get Help': None, 'Report a bug': None, 'About': None}
 )
 
-# CSS PARA APARIENCIA FUTURISTA TIPO IRON MAN (Sin cambios)
+# CSS PARA APARIENCIA FUTURISTA TIPO IRON MAN
 css_jarvis = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
@@ -115,6 +116,26 @@ h1 {
 st.markdown(css_jarvis, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════
+# FUNCIONES DE VOZ (TTS)
+# ═══════════════════════════════════════════════════════════════
+
+def speak_text(text):
+    """Genera JavaScript para que el navegador lea el texto en voz alta."""
+    # Limpiamos el texto de comillas y saltos de línea para no romper el JS
+    text_clean = text.replace("'", "").replace('"', '').replace("\n", " ")
+    
+    js_code = f"""
+    <script>
+        var utterance = new SpeechSynthesisUtterance("{text_clean}");
+        utterance.lang = 'es-ES'; // Idioma español (cambiar a 'en-US' si prefieres inglés)
+        utterance.rate = 1.0;     // Velocidad
+        utterance.pitch = 0.9;    // Tono (grave tipo robot)
+        window.speechSynthesis.speak(utterance);
+    </script>
+    """
+    components.html(js_code, height=0)
+
+# ═══════════════════════════════════════════════════════════════
 # PERSONALIDAD DE JARVIS
 # ═══════════════════════════════════════════════════════════════
 
@@ -156,7 +177,6 @@ def load_knowledge_base():
         try:
             loader = PyPDFLoader(pdf_path)
             docs = loader.load()
-            # Añadimos metadatos para saber de qué archivo viene la info
             for doc in docs:
                 doc.metadata["source"] = os.path.basename(pdf_path)
             all_docs.extend(docs)
@@ -166,11 +186,9 @@ def load_knowledge_base():
     if not all_docs:
         return None, []
 
-    # Dividir texto en fragmentos
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     splits = text_splitter.split_documents(all_docs)
     
-    # Crear embeddings y base vectorial (usando modelo local gratuito)
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = FAISS.from_documents(splits, embeddings)
     
@@ -223,6 +241,11 @@ if "messages" not in st.session_state:
 with st.sidebar:
     st.markdown("### 🔋 PANEL DE CONTROL")
     st.markdown("<div class='divider-animated'></div>", unsafe_allow_html=True)
+    
+    # Interruptor de Voz
+    st.markdown("#### 🔊 Configuración de Voz")
+    voice_enabled = st.checkbox("Activar voz JARVIS", value=True)
+    st.markdown("---")
     
     st.markdown("#### 📂 Base de Conocimiento")
     
@@ -288,29 +311,21 @@ if prompt := st.chat_input("Ingrese su comando, Señor Stark..."):
     # Llamada a Groq
     with st.chat_message("assistant", avatar="🔋"):
         try:
-            # Preparamos los mensajes para la API
-            # Nota: En Groq/OpenAI, el system prompt va separado o como primer mensaje
-            api_messages = [{"role": "system", "content": full_prompt_content}]
-            
-            # Añadimos el historial reciente (opcional, para memoria de conversación)
-            # Aquí simplificamos enviando solo el system prompt mejorado + el mensaje actual
-            # Pero para mantener el hilo de conversación, iteramos el historial:
-            
-            # Formato correcto: System -> History -> User
             formatted_messages = [{"role": "system", "content": full_prompt_content}]
-            for m in st.session_state.messages: # Añadimos el historial anterior
+            for m in st.session_state.messages:
                 formatted_messages.append({"role": m["role"], "content": m["content"]})
             
-            # Quitamos el último mensaje usuario porque ya está en el historial que acabamos de añadir
-            # Dejamos que la API maneje el stream
-            
             stream = client.chat.completions.create(
-                model="llama-3.1-8b-instant", # O "llama3-70b-8192" para más potencia
+                model="llama-3.1-8b-instant",
                 messages=formatted_messages,
                 stream=True,
             )
             response = st.write_stream(stream)
             st.session_state.messages.append({"role": "assistant", "content": response})
+            
+            # --- ACTIVAR VOZ ---
+            if voice_enabled:
+                speak_text(response)
             
         except Exception as e:
             st.error(f"⚠️ Señor Stark, detecto una anomalía: {str(e)}")
