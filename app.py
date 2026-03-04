@@ -1,20 +1,3 @@
-Entiendo perfectamente. En los móviles, la barra lateral (sidebar) está oculta por defecto y es difícil acceder a ella. Para solucionarlo, vamos a situar el botón del micrófono **flotando justo al lado de la caja de texto**, similar a como funciona WhatsApp o Telegram.
-
-Para lograr esto sin romper el diseño responsivo de Streamlit, usaremos un truco de CSS para posicionar el botón del micrófono sobre la esquina inferior izquierda, junto al input.
-
-Aquí tienes el código actualizado:
-
-### Paso 1: `requirements.txt`
-Asegúrate de mantener esta librería (ya la tienes, pero confírmalo):
-```text
-streamlit-mic-recorder
-```
-
-### Paso 2: Código Actualizado (`app.py`)
-
-He modificado la estructura para que el micrófono aparezca flotando en la parte inferior, siempre visible y al lado del chat.
-
-```python
 import streamlit as st
 from openai import OpenAI
 import time
@@ -145,7 +128,6 @@ h1 {
 .stInfo { background: rgba(168, 85, 247, 0.1) !important; color: #ffffff !important; }
 
 /* --- MAGIA PARA POSICIONAR MICRÓFONO JUNTO AL INPUT --- */
-/* Creamos un contenedor flotante en la parte inferior */
 .mic-container {
     position: fixed;
     bottom: 30px; /* Ajusta la altura desde el suelo */
@@ -155,12 +137,6 @@ h1 {
     box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
 }
 
-/* Ocultar el label del mic-recorder para que se vea limpio */
-div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column"] > div > button {
-    /* Estilos extra para el botón si es necesario */
-}
-
-/* Espacio extra al final para que el chat no se esconda detrás del botón */
 .main-padding-fix {
     height: 80px;
     display: block;
@@ -373,11 +349,8 @@ if audio_data:
             st.error(f"⚠️ Error en transcripción: {str(e)}")
 
 # --- 2. INPUT DE TEXTO ---
-# Solo renderizamos el input de texto si no acabamos de procesar audio para evitar refresh molestos,
-# pero en Streamlit siempre debe estar presente para escritura.
 # Ponemos un espacio al final para que no choque con el botón flotante
 st.markdown('<div class="main-padding-fix"></div>', unsafe_allow_html=True)
 
 if prompt := st.chat_input("Escribe tu consulta, Profe Adrián..."):
     process_user_input(prompt)
-```
