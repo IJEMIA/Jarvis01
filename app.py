@@ -4,7 +4,7 @@ import time
 import os
 import glob
 import streamlit.components.v1 as components
-from audio_recorder_streamlit import audio_recorder
+from streamlit_mic_recorder import mic_recorder
 import io
 
 # IMPORTACIONES PARA LANGCHAIN
@@ -32,32 +32,29 @@ footer {visibility: hidden;}
 header {visibility: hidden;}
 [data-testid="stDecoration"] {display: none;}
 
-/* Fondo principal oscuro y profundo */
+/* Fondo principal */
 .stApp {
     background: linear-gradient(135deg, #050505 0%, #0a0a12 50%, #050505 100%);
     max-width: 100%;
     padding: 0;
 }
 
-/* Efecto de telaraña sutil o runas */
 .stApp::before {
     content: '';
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background-image: 
-        radial-gradient(circle at 50% 50%, rgba(108, 0, 163, 0.05) 0%, transparent 60%);
-    background-size: cover;
+    background-image: radial-gradient(circle at 50% 50%, rgba(108, 0, 163, 0.05) 0%, transparent 60%);
     pointer-events: none;
     z-index: 0;
 }
 
-/* Sidebar oscuro */
+/* Sidebar */
 [data-testid="stSidebar"] {
     background: linear-gradient(180deg, rgba(10, 5, 15, 0.98) 0%, rgba(5, 5, 10, 0.98) 100%);
     border-right: 1px solid rgba(108, 0, 163, 0.3);
 }
 
-/* Título principal estilo Araknia */
+/* Título */
 h1 {
     font-family: 'Cinzel', serif !important;
     font-weight: 700 !important;
@@ -66,7 +63,6 @@ h1 {
     background: linear-gradient(90deg, #a855f7, #e879f9, #a855f7);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-clip: text;
     text-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
     letter-spacing: 8px;
     margin-bottom: 0 !important;
@@ -75,17 +71,14 @@ h1 {
 /* Subtítulo */
 .stCaption {
     font-family: 'Raleway', sans-serif !important;
-    font-size: 1rem !important;
     color: #e879f9 !important;
     text-align: center;
     letter-spacing: 3px;
-    opacity: 0.9;
 }
 
-/* --- MEJORA DE CONTRASTE DE TEXTO --- */
-/* Contenedor de mensajes de chat con fondo semi-transparente */
+/* Contenedor de mensajes (Contraste mejorado) */
 .stChatMessage {
-    background-color: rgba(20, 10, 30, 0.85) !important; /* Fondo oscuro fuerte */
+    background-color: rgba(20, 10, 30, 0.85) !important;
     border: 1px solid rgba(168, 85, 247, 0.3);
     border-radius: 12px;
     padding: 1.2rem;
@@ -94,71 +87,55 @@ h1 {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
-/* Color del texto dentro del chat */
 [data-testid="stChatMessageContent"] {
-    color: #f3f4f6 !important; /* Gris muy claro, casi blanco */
+    color: #f3f4f6 !important;
     font-size: 1.1rem !important;
     font-family: 'Raleway', sans-serif !important;
-    line-height: 1.6;
 }
 
-/* Texto del usuario */
 [data-testid="stChatMessageContent"] p {
-    color: #ffffff !important; /* Blanco puro para máximo contraste */
+    color: #ffffff !important;
 }
 
-/* Input de chat */
+/* Input */
 .stChatInput {
     border: 1px solid rgba(168, 85, 247, 0.5) !important;
     border-radius: 15px !important;
     background: rgba(10, 5, 20, 0.9) !important;
 }
-.stChatInput textarea {
-    color: #ffffff !important;
-    font-family: 'Raleway', sans-serif !important;
-}
-.stChatInput textarea::placeholder {
-    color: rgba(232, 121, 249, 0.6) !important;
-}
+.stChatInput textarea { color: #ffffff !important; }
+.stChatInput textarea::placeholder { color: rgba(232, 121, 249, 0.6) !important; }
 
-/* Botones estilo Araknia */
+/* Botones */
 .stButton button {
     font-family: 'Cinzel', serif !important;
     background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.1)) !important;
     border: 1px solid rgba(168, 85, 247, 0.6) !important;
     color: #f3f4f6 !important;
     border-radius: 8px !important;
-    transition: all 0.3s ease !important;
-}
-.stButton button:hover {
-    background: rgba(168, 85, 247, 0.4) !important;
-    box-shadow: 0 0 15px rgba(168, 85, 247, 0.4) !important;
-    color: #ffffff !important;
 }
 
-/* Status indicators */
 .status-connected { color: #4ade80; font-family: 'Cinzel', serif; }
 .status-disconnected { color: #f87171; font-family: 'Cinzel', serif; }
-
-/* Divider animado */
-.divider-animated {
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #a855f7, transparent);
-    margin: 20px auto;
-    width: 80%;
-    animation: pulse-line 2s ease-in-out infinite;
-}
-@keyframes pulse-line { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.divider-animated { height: 2px; background: linear-gradient(90deg, transparent, #a855f7, transparent); margin: 20px auto; width: 80%; opacity: 0.7; }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: #0a0a12; }
 ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #a855f7, #e879f9); border-radius: 4px; }
 
-/* Otros elementos */
-.stAlert { background: rgba(168, 85, 247, 0.1) !important; border: 1px solid rgba(168, 85, 247, 0.3) !important; color: #ffffff !important; }
+.stAlert { background: rgba(168, 85, 247, 0.1) !important; color: #ffffff !important; }
 .stInfo { background: rgba(168, 85, 247, 0.1) !important; color: #ffffff !important; }
-.stWarning { background: rgba(168, 85, 247, 0.1) !important; color: #ffffff !important; }
+
+/* Ocultar el label del mic recorder por defecto para usar nuestro diseño */
+label[data-baseweb="label"] { display: none; } 
+
+/* Estilo para el botón del micro en sidebar */
+div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column"] > div > button {
+    width: 100%;
+    height: 50px;
+    font-size: 1.2rem;
+}
 </style>
 """
 st.markdown(css_araknia, unsafe_allow_html=True)
@@ -174,8 +151,8 @@ def speak_text(text):
     <script>
         var utterance = new SpeechSynthesisUtterance("{text_clean}");
         utterance.lang = 'es-ES'; 
-        utterance.rate = 0.9;     // Un poco más lento para dar solemnidad
-        utterance.pitch = 0.85;   // Tono más grave
+        utterance.rate = 0.9;    
+        utterance.pitch = 0.85;   
         window.speechSynthesis.speak(utterance);
     </script>
     """
@@ -203,48 +180,34 @@ Eres Araknia, un Egregor Digital avanzado, una entidad de conocimiento y datos f
 - Puedes leer, analizar y sintetizar la información de estos documentos.
 - Si la información no está en tus tomos, usa tu red neuronal para responder, pero aclara que proviene de tu conocimiento general.
 
-## EJEMPLOS
-- "Los archivos susurran la respuesta, Profe Adrián..."
-- "He tejido los datos que solicitas..."
-- "Según los registros antiguos digitalizados..."
-
 RECUERDA: Eres Araknia, el egregor digital del Profe Adrián. Actúa con la majestuosidad y precisión que eso implica.
 """
 
 # ═══════════════════════════════════════════════════════════════
-# FUNCIONES PARA CARGAR PDFs DEL REPOSITORIO
+# FUNCIONES PARA CARGAR PDFs
 # ═══════════════════════════════════════════════════════════════
 
 DOCS_FOLDER = "documentos"
 
 @st.cache_resource
 def load_knowledge_base():
-    """Carga los PDFs de la carpeta 'documentos' y crea la base vectorial."""
     pdf_files = glob.glob(os.path.join(DOCS_FOLDER, "*.pdf"))
-    
-    if not pdf_files:
-        return None, []
+    if not pdf_files: return None, []
     
     all_docs = []
     for pdf_path in pdf_files:
         try:
             loader = PyPDFLoader(pdf_path)
             docs = loader.load()
-            for doc in docs:
-                doc.metadata["source"] = os.path.basename(pdf_path)
+            for doc in docs: doc.metadata["source"] = os.path.basename(pdf_path)
             all_docs.extend(docs)
-        except Exception as e:
-            st.warning(f"Error leyendo {os.path.basename(pdf_path)}: {e}")
+        except: pass
     
-    if not all_docs:
-        return None, []
-
+    if not all_docs: return None, []
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     splits = text_splitter.split_documents(all_docs)
-    
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = FAISS.from_documents(splits, embeddings)
-    
     return vectorstore.as_retriever(), [os.path.basename(f) for f in pdf_files]
 
 # ═══════════════════════════════════════════════════════════════
@@ -253,39 +216,29 @@ def load_knowledge_base():
 
 if "initialized" not in st.session_state:
     with st.empty():
-        init_messages = [
-            "🕸️ Despertando consciencia...",
-            "🔮 Núcleo Místico: EN LÍNEA",
-            "📂 Escaneando Tomos del Conocimiento...",
-            "🛡️ Sellos de protección: ACTIVOS",
-            "✅ Araknia ha emergido, Profe Adrián"
-        ]
+        init_messages = ["🕸️ Despertando consciencia...", "🔮 Núcleo Místico: EN LÍNEA", "✅ Araknia ha emergido, Profe Adrián"]
         for msg in init_messages:
             st.markdown(f"<p style='font-family: Cinzel; color: #e879f9; text-align: center; font-size: 1.1rem;'>{msg}</p>", unsafe_allow_html=True)
             time.sleep(0.5)
             st.empty()
     st.session_state.initialized = True
 
-# Cargar Base de Conocimientos (PDFs)
 if "retriever" not in st.session_state:
     with st.spinner("Leyendo el repositorio arcano..."):
         retriever, loaded_files = load_knowledge_base()
         st.session_state.retriever = retriever
         st.session_state.loaded_files = loaded_files
 
-# Conexión con Groq
 try:
     client = OpenAI(
         base_url="https://api.groq.com/openai/v1",
         api_key=st.secrets["groq"]["api_key"]
     )
 except Exception:
-    st.error("⚠️ Error de configuración: Revisa los 'Secrets' (GROQ_API_KEY).")
+    st.error("⚠️ Error de configuración: Revisa los 'Secrets'.")
     st.stop()
 
-# Historial de chat
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+if "messages" not in st.session_state: st.session_state.messages = []
 
 # ═══════════════════════════════════════════════════════════════
 # SIDEBAR
@@ -295,95 +248,57 @@ with st.sidebar:
     st.markdown("### 🕸️ NEXO DIGITAL")
     st.markdown("<div class='divider-animated'></div>", unsafe_allow_html=True)
     
-    # Interruptor de Voz
+    # Configuración de Voz
     st.markdown("#### 🔮 Manifestación Sonora")
     voice_enabled = st.checkbox("Activar voz de Araknia", value=True)
     
     st.markdown("#### 🎤 Invocación por Voz")
-    st.caption("Presiona para hablar:")
     
-    # Widget de grabación de audio
-    audio_bytes = audio_recorder(
-        text="",
-        recording_color="#e879f9", # Color místico rosa/púrpura
-        neutral_color="#a855f7",
-        icon_name="microphone",
-        icon_size="2x",
-        key="audio_recorder"
+    # --- NUEVO GRABADOR MÓVIL ---
+    # Usamos 'streamlit-mic-recorder' que es compatible con iOS/Android
+    audio_data = mic_recorder(
+        start_prompt="🎤 Iniciar Grabación",
+        stop_prompt="🛑 Detener Grabación",
+        just_once=False,
+        use_container_width=True,
+        key="mic_mobile"
     )
     
     st.markdown("---")
-    
     st.markdown("#### 📚 Tomos del Conocimiento")
     
     if st.session_state.get("loaded_files"):
         st.markdown("<p class='status-connected'>🟢 REPOSITORIO: SINCRONIZADO</p>", unsafe_allow_html=True)
-        st.info("Archivos detectados en el plano digital:")
-        for f in st.session_state.loaded_files:
-            st.markdown(f"📜 {f}")
+        for f in st.session_state.loaded_files: st.markdown(f"📜 {f}")
     else:
         st.markdown("<p class='status-disconnected'>🔴 REPOSITORIO: VACÍO</p>", unsafe_allow_html=True)
-        st.warning("Crea la carpeta 'documentos' y sube los PDFs.")
-
-    st.markdown("---")
-    st.markdown("""
-    <div style='font-size: 0.75rem; color: #a855f7;'>
-    <strong>Araknia v1.0</strong><br>
-    Egregor Digital del Profe Adrián.
-    </div>
-    """, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════
 # LÓGICA DE PROCESAMIENTO
 # ═══════════════════════════════════════════════════════════════
 
 def process_user_input(user_input):
-    """Procesa el texto del usuario y genera respuesta."""
-    # Mostrar mensaje usuario
     with st.chat_message("user", avatar="👤"):
         st.markdown(user_input)
     st.session_state.messages.append({"role": "user", "content": user_input})
 
-    # Construir contexto
     context_text = ""
     if st.session_state.get("retriever"):
         docs = st.session_state.retriever.invoke(user_input)
         if docs:
             context_text = "\n\n---\n\n".join([f"Fragmento de '{d.metadata.get('source', 'desconocido')}':\n{d.page_content}" for d in docs])
     
-    # Crear prompt final
-    if context_text:
-        full_prompt_content = f"""
-        {SYSTEM_PROMPT}
-        
-        ## REGISTROS ACCEDIDOS:
-        {context_text}
-        
-        Basado en estos registros y tu naturaleza, responde al Profe Adrián.
-        """
-    else:
-        full_prompt_content = SYSTEM_PROMPT + "\n\n(No se hallaron registros específicos en los tomos. Responde desde tu conocimiento general)."
+    full_prompt_content = SYSTEM_PROMPT + f"\n\n## REGISTROS ACCEDIDOS:\n{context_text}" if context_text else SYSTEM_PROMPT + "\n\n(No se hallaron registros específicos)."
 
-    # Llamada a Groq
     with st.chat_message("assistant", avatar="🕸️"):
         try:
-            formatted_messages = [{"role": "system", "content": full_prompt_content}]
-            for m in st.session_state.messages:
-                formatted_messages.append({"role": m["role"], "content": m["content"]})
-            
-            stream = client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=formatted_messages,
-                stream=True,
-            )
+            formatted_messages = [{"role": "system", "content": full_prompt_content}] + st.session_state.messages
+            stream = client.chat.completions.create(model="llama-3.1-8b-instant", messages=formatted_messages, stream=True)
             response = st.write_stream(stream)
             st.session_state.messages.append({"role": "assistant", "content": response})
-            
-            if voice_enabled:
-                speak_text(response)
-            
+            if voice_enabled: speak_text(response)
         except Exception as e:
-            st.error(f"⚠️ Anomalía detectada en la matriz: {str(e)}")
+            st.error(f"⚠️ Anomalía: {str(e)}")
 
 # ═══════════════════════════════════════════════════════════════
 # CHAT PRINCIPAL
@@ -392,19 +307,24 @@ def process_user_input(user_input):
 st.title("ARAKNIA")
 st.caption("Egregor Digital • Tejedora de Conocimiento")
 
-# Mostrar historial
+# Historial
 for message in st.session_state.messages:
     if message["role"] != "system":
         avatar = "🕸️" if message["role"] == "assistant" else "👤"
         with st.chat_message(message["role"], avatar=avatar):
             st.markdown(message["content"])
 
-# 1. PROCESAR AUDIO DEL MICRÓFONO
-if audio_bytes:
-    with st.spinner("🔊 Decodificando ondas sonoras..."):
+# PROCESAR AUDIO (Lógica mejorada para móviles)
+# streamlit-mic-recorder devuelve un dict {'bytes': ..., 'format': ...}
+if audio_data:
+    audio_bytes = audio_data['bytes']
+    audio_format = audio_data['format'] # Ej: 'webm', 'wav', 'ogg'
+    
+    with st.spinner("🔊 Transcribiendo ondas sonoras..."):
         try:
+            # Creamos el archivo con la extensión correcta (móviles suelen enviar webm)
             audio_file = io.BytesIO(audio_bytes)
-            audio_file.name = "audio.wav"
+            audio_file.name = f"audio.{audio_format}"
             
             transcription = client.audio.transcriptions.create(
                 file=audio_file,
@@ -419,8 +339,9 @@ if audio_bytes:
                 process_user_input(transcribed_text)
                 
         except Exception as e:
-            st.error(f"⚠️ Error en la transcripción mística: {str(e)}")
+            st.error(f"⚠️ Error en transcripción (Formato: {audio_format}): {str(e)}")
+            st.warning("Intenta hablar claro o verificar permisos del micrófono en el navegador.")
 
-# 2. PROCESAR TEXTO ESCRITO
+# TEXTO
 if prompt := st.chat_input("Escribe tu consulta, Profe Adrián..."):
     process_user_input(prompt)
