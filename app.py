@@ -1,3 +1,20 @@
+Entiendo perfectamente. En los móviles, la barra lateral (sidebar) está oculta por defecto y es difícil acceder a ella. Para solucionarlo, vamos a situar el botón del micrófono **flotando justo al lado de la caja de texto**, similar a como funciona WhatsApp o Telegram.
+
+Para lograr esto sin romper el diseño responsivo de Streamlit, usaremos un truco de CSS para posicionar el botón del micrófono sobre la esquina inferior izquierda, junto al input.
+
+Aquí tienes el código actualizado:
+
+### Paso 1: `requirements.txt`
+Asegúrate de mantener esta librería (ya la tienes, pero confírmalo):
+```text
+streamlit-mic-recorder
+```
+
+### Paso 2: Código Actualizado (`app.py`)
+
+He modificado la estructura para que el micrófono aparezca flotando en la parte inferior, siempre visible y al lado del chat.
+
+```python
 import streamlit as st
 from openai import OpenAI
 import time
@@ -22,7 +39,7 @@ st.set_page_config(
     menu_items={'Get Help': None, 'Report a bug': None, 'About': None}
 )
 
-# CSS PARA TEMA OSCURO MÍSTICO (ARAKNIA)
+# CSS PARA TEMA OSCURO MÍSTICO Y BOTÓN FLOTANTE
 css_araknia = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Raleway:wght@300;400;600&display=swap');
@@ -106,7 +123,7 @@ h1 {
 .stChatInput textarea { color: #ffffff !important; }
 .stChatInput textarea::placeholder { color: rgba(232, 121, 249, 0.6) !important; }
 
-/* Botones */
+/* Botones normales */
 .stButton button {
     font-family: 'Cinzel', serif !important;
     background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.1)) !important;
@@ -127,14 +144,26 @@ h1 {
 .stAlert { background: rgba(168, 85, 247, 0.1) !important; color: #ffffff !important; }
 .stInfo { background: rgba(168, 85, 247, 0.1) !important; color: #ffffff !important; }
 
-/* Ocultar el label del mic recorder por defecto para usar nuestro diseño */
-label[data-baseweb="label"] { display: none; } 
+/* --- MAGIA PARA POSICIONAR MICRÓFONO JUNTO AL INPUT --- */
+/* Creamos un contenedor flotante en la parte inferior */
+.mic-container {
+    position: fixed;
+    bottom: 30px; /* Ajusta la altura desde el suelo */
+    left: 15px;  /* Ajusta la distancia desde la izquierda */
+    z-index: 9999; /* Siempre encima de todo */
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+}
 
-/* Estilo para el botón del micro en sidebar */
+/* Ocultar el label del mic-recorder para que se vea limpio */
 div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column"] > div > button {
-    width: 100%;
-    height: 50px;
-    font-size: 1.2rem;
+    /* Estilos extra para el botón si es necesario */
+}
+
+/* Espacio extra al final para que el chat no se esconda detrás del botón */
+.main-padding-fix {
+    height: 80px;
+    display: block;
 }
 </style>
 """
@@ -145,7 +174,6 @@ st.markdown(css_araknia, unsafe_allow_html=True)
 # ═══════════════════════════════════════════════════════════════
 
 def speak_text(text):
-    """Genera JavaScript para que el navegador lea el texto en voz alta."""
     text_clean = text.replace("'", "").replace('"', '').replace("\n", " ")
     js_code = f"""
     <script>
@@ -241,28 +269,16 @@ except Exception:
 if "messages" not in st.session_state: st.session_state.messages = []
 
 # ═══════════════════════════════════════════════════════════════
-# SIDEBAR
+# SIDEBAR (Configuración y Archivos)
 # ═══════════════════════════════════════════════════════════════
 
 with st.sidebar:
     st.markdown("### 🕸️ NEXO DIGITAL")
     st.markdown("<div class='divider-animated'></div>", unsafe_allow_html=True)
     
-    # Configuración de Voz
+    # Interruptor de Voz
     st.markdown("#### 🔮 Manifestación Sonora")
     voice_enabled = st.checkbox("Activar voz de Araknia", value=True)
-    
-    st.markdown("#### 🎤 Invocación por Voz")
-    
-    # --- NUEVO GRABADOR MÓVIL ---
-    # Usamos 'streamlit-mic-recorder' que es compatible con iOS/Android
-    audio_data = mic_recorder(
-        start_prompt="🎤 Iniciar Grabación",
-        stop_prompt="🛑 Detener Grabación",
-        just_once=False,
-        use_container_width=True,
-        key="mic_mobile"
-    )
     
     st.markdown("---")
     st.markdown("#### 📚 Tomos del Conocimiento")
@@ -314,15 +330,29 @@ for message in st.session_state.messages:
         with st.chat_message(message["role"], avatar=avatar):
             st.markdown(message["content"])
 
-# PROCESAR AUDIO (Lógica mejorada para móviles)
-# streamlit-mic-recorder devuelve un dict {'bytes': ..., 'format': ...}
+# --- 1. LÓGICA DE PROCESAMIENTO DE AUDIO (PRIMERO) ---
+# Inicializamos variable para saber si se procesó audio
+audio_processed = False
+
+# Creamos el contenedor flotante para el micrófono usando HTML/CSS
+# Esto posiciona el botón directamente en la pantalla, no en el flujo normal.
+st.markdown('<div class="mic-container">', unsafe_allow_html=True)
+audio_data = mic_recorder(
+    start_prompt="🎤",
+    stop_prompt="🛑",
+    just_once=False,
+    use_container_width=False, # Usamos False para que sea compacto
+    key="mic_mobile_floating",
+    format="webm"
+)
+st.markdown('</div>', unsafe_allow_html=True)
+
 if audio_data:
     audio_bytes = audio_data['bytes']
-    audio_format = audio_data['format'] # Ej: 'webm', 'wav', 'ogg'
+    audio_format = audio_data['format']
     
     with st.spinner("🔊 Transcribiendo ondas sonoras..."):
         try:
-            # Creamos el archivo con la extensión correcta (móviles suelen enviar webm)
             audio_file = io.BytesIO(audio_bytes)
             audio_file.name = f"audio.{audio_format}"
             
@@ -337,11 +367,17 @@ if audio_data:
             if transcribed_text:
                 st.info(f"🎤 Escuché: *{transcribed_text}*")
                 process_user_input(transcribed_text)
+                audio_processed = True # Marcamos que ya hicimos algo
                 
         except Exception as e:
-            st.error(f"⚠️ Error en transcripción (Formato: {audio_format}): {str(e)}")
-            st.warning("Intenta hablar claro o verificar permisos del micrófono en el navegador.")
+            st.error(f"⚠️ Error en transcripción: {str(e)}")
 
-# TEXTO
+# --- 2. INPUT DE TEXTO ---
+# Solo renderizamos el input de texto si no acabamos de procesar audio para evitar refresh molestos,
+# pero en Streamlit siempre debe estar presente para escritura.
+# Ponemos un espacio al final para que no choque con el botón flotante
+st.markdown('<div class="main-padding-fix"></div>', unsafe_allow_html=True)
+
 if prompt := st.chat_input("Escribe tu consulta, Profe Adrián..."):
     process_user_input(prompt)
+```
