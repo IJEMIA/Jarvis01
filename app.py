@@ -246,7 +246,7 @@ st.markdown(css_aracknia, unsafe_allow_html=True)
 header_html = """
 <div class="main-header">
     <h1 class="main-title">ARACKNIA</h1>
-    <p class="subtitle">El Egregor de la Sabiduría</p>
+    <p class="subtitle">Pregunta y se te contestará </p>
 </div>
 """
 st.markdown(header_html, unsafe_allow_html=True)
@@ -446,7 +446,7 @@ def get_audio_button_html(text, key):
             cursor: pointer;
             font-family: 'Cinzel', serif;
             font-size: 0.8rem;
-        ">🎧 Escuchar la Verdad</button>
+        ">🎧 Escuchar /button>
     </div>
     """
 
